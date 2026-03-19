@@ -16,6 +16,8 @@
  *   SUPABASE_SERVICE_ROLE_KEY   (recommended for ingestion)
  */
 
+import 'dotenv/config'
+
 import fs from 'node:fs'
 import readline from 'node:readline'
 
@@ -110,8 +112,8 @@ async function main() {
   const taskArg = arg('--task') as TaskType | undefined
   const batchSize = Number(arg('--batch') ?? '200')
 
-  const url = must(process.env.NEXT_PUBLIC_SUPABASE_URL, 'Missing NEXT_PUBLIC_SUPABASE_URL')
-  const serviceKey = must(process.env.SUPABASE_SERVICE_ROLE_KEY, 'Missing SUPABASE_SERVICE_ROLE_KEY (use local-only ingestion)')
+  const url = must(process.env.NEXT_PUBLIC_SUPABASE_URL, 'Missing NEXT_PUBLIC_SUPABASE_URL (did you create .env.local?)')
+  const serviceKey = must(process.env.SUPABASE_SERVICE_ROLE_KEY, 'Missing SUPABASE_SERVICE_ROLE_KEY (did you create .env.local?)')
 
   const endpoint = url.replace(/\/$/, '') + '/rest/v1/review_items'
   const headers = {

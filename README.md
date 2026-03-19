@@ -8,6 +8,10 @@ Expert review UI for ChEmbed datasets.
 cp .env.example .env.local
 # fill env vars
 npm install
+
+# local one-time ingestion (uses SUPABASE_SERVICE_ROLE_KEY)
+npm run ingest
+
 npm run dev
 ```
 
