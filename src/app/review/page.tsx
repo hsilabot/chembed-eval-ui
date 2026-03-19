@@ -128,6 +128,24 @@ function sanitizeText(value: unknown) {
   return String(value ?? '').replace(/\n?\[\.\.\. truncated \.\.\.\]/g, '').trimEnd()
 }
 
+function normalizeForMatch(value: string) {
+  return value.toLowerCase().replace(/\s+/g, ' ').trim()
+}
+
+function isLikelyGoldMatch(goldTextRaw: unknown, retrievedTextRaw: unknown) {
+  const gold = normalizeForMatch(sanitizeText(goldTextRaw))
+  const cand = normalizeForMatch(sanitizeText(retrievedTextRaw))
+  if (!gold || !cand) return false
+
+  // Prefer strict equality first.
+  if (gold === cand) return true
+
+  // Fallback: prefix/slice matching to handle mild clipping differences.
+  const goldPrefix = gold.slice(0, 180)
+  const candPrefix = cand.slice(0, 180)
+  return goldPrefix.length > 60 && (cand.includes(goldPrefix) || gold.includes(candPrefix))
+}
+
 function itemToCsvRow(item: ReviewItem, review: ReviewRow) {
   const payload = item.payload ?? {}
   const retrieved = Array.isArray(payload.retrieved)
@@ -476,22 +494,22 @@ export default function ReviewPage() {
   const isTraining = currentBucket.task_type === 'training'
 
   return (
-    <main className="h-screen flex">
-      <aside className="w-80 border-r p-4 flex flex-col gap-6">
+    <main className="h-screen flex bg-neutral-950 text-neutral-100">
+      <aside className="w-80 border-r border-neutral-800 bg-neutral-950 p-4 flex flex-col gap-6">
         <div className="space-y-1">
           <h1 className="text-lg font-semibold">ChEmbed Review</h1>
-          <p className="text-xs text-neutral-600 break-all">{user.email}</p>
+          <p className="text-xs text-neutral-300 break-all">{user.email}</p>
           <button className="cursor-pointer text-xs underline" onClick={signOut}>Logout</button>
         </div>
 
         <div>
-          <div className="text-xs uppercase tracking-wide text-neutral-500">Training Data</div>
+          <div className="text-xs uppercase tracking-wide text-neutral-400">Training Data</div>
           <div className="mt-2 space-y-1 text-sm">
             {BUCKETS.filter((b) => b.task_type === 'training').map((b) => (
               <button
                 key={b.key}
                 onClick={() => setSelectedBucket(b.key)}
-                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'text-neutral-900 hover:bg-neutral-200'}`}
+                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'text-neutral-200 hover:bg-neutral-800'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span>{b.title}</span>
@@ -503,13 +521,13 @@ export default function ReviewPage() {
         </div>
 
         <div>
-          <div className="text-xs uppercase tracking-wide text-neutral-500">Evaluation Data</div>
+          <div className="text-xs uppercase tracking-wide text-neutral-400">Evaluation Data</div>
           <div className="mt-2 space-y-1 text-sm">
             {BUCKETS.filter((b) => b.task_type === 'evaluation').map((b) => (
               <button
                 key={b.key}
                 onClick={() => setSelectedBucket(b.key)}
-                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'text-neutral-900 hover:bg-neutral-200'}`}
+                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'text-neutral-200 hover:bg-neutral-800'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span>{b.title}</span>
@@ -529,7 +547,7 @@ export default function ReviewPage() {
         </button>
       </aside>
 
-      <section className="flex-1 p-6 overflow-auto space-y-4">
+      <section className="flex-1 p-6 overflow-auto space-y-4 bg-neutral-950 text-neutral-100">
         {!canReview && (
           <div className="rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Read-only: not authorized to submit reviews
@@ -575,24 +593,24 @@ export default function ReviewPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div className="rounded border p-4 space-y-4">
-                <h2 className="text-xs uppercase tracking-wide text-neutral-500">Presented Data</h2>
+                <h2 className="text-xs uppercase tracking-wide text-neutral-400">Presented Data</h2>
 
                 {isTraining ? (
                   <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-2">
                     <div>
-                      <div className="text-xs text-neutral-500">Query</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.query ?? payload.query_text)}</p>
+                      <div className="text-xs text-neutral-300">Query</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.query ?? payload.query_text)}</p>
                     </div>
                     <div>
-                      <div className="text-xs text-neutral-500">Passage</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.passage)}</p>
+                      <div className="text-xs text-neutral-300">Passage</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.passage)}</p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div>
-                      <div className="text-xs text-neutral-500">Query</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.query ?? payload.query_text)}</p>
+                      <div className="text-xs text-neutral-300">Query</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.query ?? payload.query_text)}</p>
                     </div>
                     <div>
                       <div className="text-xs font-medium text-emerald-400">Gold Passage</div>
@@ -601,7 +619,7 @@ export default function ReviewPage() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-neutral-500">Top-10 Retrieved</div>
+                      <div className="text-xs text-neutral-300">Top-10 Retrieved</div>
                       <ol className="mt-2 space-y-3 text-sm list-decimal pl-5">
                         {(payload.retrieved ?? []).map((r: RetrievedEntry, i: number) => {
                           const key = `${currentItem.id}-${r.rank ?? i}-${r.doc_id ?? 'doc'}`
@@ -609,15 +627,16 @@ export default function ReviewPage() {
                           const needsToggle = fullText.length > 360
                           const expanded = Boolean(expandedRetrieved[key])
                           const shownText = expanded || !needsToggle ? fullText : fullText.slice(0, 360)
+                          const isGold = isLikelyGoldMatch(payload.ground_truth_text, r.text)
 
                           return (
                             <li key={key}>
-                              <p className="font-medium text-neutral-900">Rank {r.rank} • {r.doc_id}</p>
-                              <p className="text-neutral-700 whitespace-pre-wrap">{shownText}</p>
+                              <p className={`font-medium ${isGold ? 'text-emerald-400' : 'text-neutral-200'}`}>Rank {r.rank} • {r.doc_id}</p>
+                              <p className="text-neutral-200 whitespace-pre-wrap">{shownText}</p>
                               {needsToggle && (
                                 <button
                                   type="button"
-                                  className="cursor-pointer mt-1 text-xs underline"
+                                  className="cursor-pointer mt-1 text-xs underline text-blue-300"
                                   onClick={() => setExpandedRetrieved((prev) => ({ ...prev, [key]: !expanded }))}
                                 >
                                   {expanded ? 'Show less' : 'Read more'}
@@ -633,7 +652,7 @@ export default function ReviewPage() {
               </div>
 
               <div className="rounded border p-4 space-y-5">
-                <h2 className="text-xs uppercase tracking-wide text-neutral-500">Expert Feedback Form</h2>
+                <h2 className="text-xs uppercase tracking-wide text-neutral-400">Expert Feedback Form</h2>
 
                 <fieldset className="space-y-2" disabled={!canReview}>
                   <div>
