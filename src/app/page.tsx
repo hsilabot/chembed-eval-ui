@@ -1,17 +1,32 @@
-import Link from 'next/link'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function Home() {
-  return (
-    <main className="mx-auto max-w-3xl p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">ChEmbed Expert Review</h1>
-      <p className="text-sm text-neutral-600">
-        Review Training and Evaluation samples from Supabase with autosave and per-bucket progress.
-      </p>
+  const router = useRouter()
 
-      <div className="flex gap-3 text-sm">
-        <Link className="rounded border px-3 py-2 hover:bg-neutral-100" href="/login">Login</Link>
-        <Link className="rounded border px-3 py-2 hover:bg-neutral-100" href="/review">Open Review App</Link>
-      </div>
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return
+      if (data.session?.user) {
+        router.replace('/review')
+      } else {
+        router.replace('/login')
+      }
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [router])
+
+  return (
+    <main className="min-h-screen flex items-center justify-center text-sm text-neutral-600">
+      Redirecting...
     </main>
   )
 }

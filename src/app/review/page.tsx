@@ -113,10 +113,14 @@ function scoreLabel(v: number) {
   return String(v)
 }
 
+function sanitizeText(value: unknown) {
+  return String(value ?? '').replace(/\n?\[\.\.\. truncated \.\.\.\]/g, '').trimEnd()
+}
+
 function itemToCsvRow(item: ReviewItem, review: ReviewRow) {
   const payload = item.payload ?? {}
   const retrieved = Array.isArray(payload.retrieved)
-    ? payload.retrieved.map((r: RetrievedEntry) => `#${r.rank} ${String(r.doc_id ?? '')}: ${String(r.text ?? '').replace(/\s+/g, ' ').trim()}`).join(' || ')
+    ? payload.retrieved.map((r: RetrievedEntry) => `#${r.rank} ${String(r.doc_id ?? '')}: ${sanitizeText(r.text).replace(/\s+/g, ' ').trim()}`).join(' || ')
     : ''
 
   return {
@@ -124,9 +128,9 @@ function itemToCsvRow(item: ReviewItem, review: ReviewRow) {
     subtask: item.subtask,
     item_id: item.id,
     order_index: item.order_index,
-    query: payload.query ?? payload.query_text ?? '',
-    passage: payload.passage ?? '',
-    gold_passage: payload.ground_truth_text ?? '',
+    query: sanitizeText(payload.query ?? payload.query_text),
+    passage: sanitizeText(payload.passage),
+    gold_passage: sanitizeText(payload.ground_truth_text),
     top10: retrieved,
     answerability: review.answerability,
     query_quality: review.query_quality,
@@ -539,23 +543,23 @@ export default function ReviewPage() {
                   <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-2">
                     <div>
                       <div className="text-xs text-neutral-500">Query</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.query ?? payload.query_text}</p>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.query ?? payload.query_text)}</p>
                     </div>
                     <div>
                       <div className="text-xs text-neutral-500">Passage</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.passage}</p>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.passage)}</p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div>
                       <div className="text-xs text-neutral-500">Query</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.query ?? payload.query_text}</p>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.query ?? payload.query_text)}</p>
                     </div>
                     <div>
                       <div className="text-xs text-neutral-500">Gold Passage</div>
-                      <div className="mt-1 max-h-64 overflow-y-auto rounded border bg-neutral-50 p-2">
-                        <p className="text-sm whitespace-pre-wrap">{payload.ground_truth_text}</p>
+                      <div className="mt-1 max-h-64 overflow-y-auto rounded border border-neutral-700 bg-neutral-900 p-2">
+                        <p className="text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.ground_truth_text)}</p>
                       </div>
                     </div>
                     <div>
@@ -563,10 +567,10 @@ export default function ReviewPage() {
                       <ol className="mt-2 space-y-3 text-sm list-decimal pl-5">
                         {(payload.retrieved ?? []).map((r: RetrievedEntry, i: number) => {
                           const key = `${currentItem.id}-${r.rank ?? i}-${r.doc_id ?? 'doc'}`
-                          const fullText = String(r.text ?? '')
+                          const fullText = sanitizeText(r.text)
                           const needsToggle = fullText.length > 360
                           const expanded = Boolean(expandedRetrieved[key])
-                          const shownText = expanded || !needsToggle ? fullText : `${fullText.slice(0, 360)}...`
+                          const shownText = expanded || !needsToggle ? fullText : fullText.slice(0, 360)
 
                           return (
                             <li key={key}>

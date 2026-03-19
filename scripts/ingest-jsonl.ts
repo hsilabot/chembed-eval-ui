@@ -43,6 +43,23 @@ function must(v: string | undefined, msg: string): string {
   return v
 }
 
+function stripTruncationMarkers<T>(value: T): T {
+  if (typeof value === 'string') {
+    return value.replace(/\n?\[\.\.\. truncated \.\.\.\]/g, '').trimEnd() as T
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((v) => stripTruncationMarkers(v)) as T
+  }
+
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, stripTruncationMarkers(v)])
+    return Object.fromEntries(entries) as T
+  }
+
+  return value
+}
+
 async function ingestOne(cfg: IngestConfig, opts: { endpoint: string; headers: Record<string, string>; batchSize: number }) {
   const { task, file } = cfg
   const { endpoint, headers, batchSize } = opts
@@ -74,7 +91,7 @@ async function ingestOne(cfg: IngestConfig, opts: { endpoint: string; headers: R
     const line = lineRaw.trim()
     if (!line) continue
 
-    const obj = JSON.parse(line)
+    const obj = stripTruncationMarkers(JSON.parse(line))
 
     // Skip meta header rows if present
     if (Object.keys(obj).length === 1 && obj.__meta__) continue
