@@ -21,6 +21,11 @@ import readline from 'node:readline'
 
 type TaskType = 'training' | 'evaluation'
 
+type IngestConfig = {
+  task: TaskType
+  file: string
+}
+
 function arg(name: string): string | undefined {
   const idx = process.argv.indexOf(name)
   if (idx === -1) return undefined
@@ -32,23 +37,9 @@ function must(v: string | undefined, msg: string): string {
   return v
 }
 
-async function main() {
-  const task = must(arg('--task') as TaskType | undefined, 'Missing --task (training|evaluation)') as TaskType
-  const batchSize = Number(arg('--batch') ?? '200')
-
-  const defaultFile = task === 'training' ? 'data/training_samples.jsonl' : 'data/evaluation_samples.jsonl'
-  const file = arg('--file') ?? defaultFile
-
-  const url = must(process.env.NEXT_PUBLIC_SUPABASE_URL, 'Missing NEXT_PUBLIC_SUPABASE_URL')
-  const serviceKey = must(process.env.SUPABASE_SERVICE_ROLE_KEY, 'Missing SUPABASE_SERVICE_ROLE_KEY (use local-only ingestion)')
-
-  const endpoint = url.replace(/\/$/, '') + '/rest/v1/review_items'
-  const headers = {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
-    'Content-Type': 'application/json',
-    Prefer: 'return=minimal',
-  }
+async function ingestOne(cfg: IngestConfig, opts: { endpoint: string; headers: Record<string, string>; batchSize: number }) {
+  const { task, file } = cfg
+  const { endpoint, headers, batchSize } = opts
 
   const stream = fs.createReadStream(file, { encoding: 'utf8' })
   const rl = readline.createInterface({ input: stream, crlfDelay: Infinity })
@@ -69,7 +60,7 @@ async function main() {
       throw new Error(`Insert failed: ${res.status} ${text.slice(0, 1500)}`)
     }
     inserted += batch.length
-    process.stdout.write(`Inserted ${inserted}\n`)
+    process.stdout.write(`[${task}] Inserted ${inserted}\n`)
     batch = []
   }
 
@@ -110,7 +101,38 @@ async function main() {
   }
 
   await flush()
-  process.stdout.write(`Done. Total inserted: ${inserted}\n`)
+  process.stdout.write(`[${task}] Done. Total inserted: ${inserted}\n`)
+}
+
+async function main() {
+  // Default behavior (per your instruction): ingest BOTH files in one run.
+  // You can still pass --task to ingest just one.
+  const taskArg = arg('--task') as TaskType | undefined
+  const batchSize = Number(arg('--batch') ?? '200')
+
+  const url = must(process.env.NEXT_PUBLIC_SUPABASE_URL, 'Missing NEXT_PUBLIC_SUPABASE_URL')
+  const serviceKey = must(process.env.SUPABASE_SERVICE_ROLE_KEY, 'Missing SUPABASE_SERVICE_ROLE_KEY (use local-only ingestion)')
+
+  const endpoint = url.replace(/\/$/, '') + '/rest/v1/review_items'
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=minimal',
+  }
+
+  const tasks: IngestConfig[] = []
+
+  if (!taskArg || taskArg === 'training') {
+    tasks.push({ task: 'training', file: arg('--file-training') ?? arg('--file') ?? 'data/training_samples.jsonl' })
+  }
+  if (!taskArg || taskArg === 'evaluation') {
+    tasks.push({ task: 'evaluation', file: arg('--file-evaluation') ?? arg('--file') ?? 'data/evaluation_samples.jsonl' })
+  }
+
+  for (const cfg of tasks) {
+    await ingestOne(cfg, { endpoint, headers, batchSize })
+  }
 }
 
 main().catch((e) => {

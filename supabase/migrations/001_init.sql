@@ -17,6 +17,14 @@ create table if not exists public.review_items (
   created_at timestamptz not null default now()
 );
 
+-- profiles: gate who can submit reviews (and future admin roles)
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  can_review boolean not null default false,
+  is_admin boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 -- reviews: expert feedback
 create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
@@ -44,38 +52,73 @@ create index if not exists idx_reviews_reviewer on public.reviews(reviewer_id);
 
 -- RLS
 alter table public.review_items enable row level security;
+alter table public.profiles enable row level security;
 alter table public.reviews enable row level security;
 
 -- Policies (tight, safe defaults)
--- review_items: any authenticated reviewer can read
+-- profiles
+-- - Anyone logged in can see profiles (needed to show role badges later).
+create policy if not exists "profiles_select_authenticated"
+on public.profiles
+for select
+to authenticated
+using (true);
+
+-- review_items: any authenticated user can read
 create policy if not exists "review_items_select_authenticated"
 on public.review_items
 for select
 to authenticated
 using (true);
 
--- reviews: reviewer can CRUD only their own
-create policy if not exists "reviews_select_own"
+-- reviews:
+-- - Any authenticated user can READ all reviews ("public")
+-- - Only users with profiles.can_review=true can WRITE reviews
+create policy if not exists "reviews_select_authenticated"
 on public.reviews
 for select
 to authenticated
-using (auth.uid() = reviewer_id);
+using (true);
 
-create policy if not exists "reviews_insert_own"
+create policy if not exists "reviews_insert_if_can_review"
 on public.reviews
 for insert
 to authenticated
-with check (auth.uid() = reviewer_id);
+with check (
+  auth.uid() = reviewer_id
+  and exists (
+    select 1 from public.profiles p
+    where p.user_id = auth.uid() and p.can_review = true
+  )
+);
 
-create policy if not exists "reviews_update_own"
+create policy if not exists "reviews_update_if_can_review"
 on public.reviews
 for update
 to authenticated
-using (auth.uid() = reviewer_id)
-with check (auth.uid() = reviewer_id);
+using (
+  auth.uid() = reviewer_id
+  and exists (
+    select 1 from public.profiles p
+    where p.user_id = auth.uid() and p.can_review = true
+  )
+)
+with check (
+  auth.uid() = reviewer_id
+  and exists (
+    select 1 from public.profiles p
+    where p.user_id = auth.uid() and p.can_review = true
+  )
+);
 
-create policy if not exists "reviews_delete_own"
+create policy if not exists "reviews_delete_if_can_review"
 on public.reviews
 for delete
 to authenticated
-using (auth.uid() = reviewer_id);
+using (
+  auth.uid() = reviewer_id
+  and exists (
+    select 1 from public.profiles p
+    where p.user_id = auth.uid() and p.can_review = true
+  )
+);
