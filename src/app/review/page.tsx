@@ -95,6 +95,18 @@ function hasAnyFeedback(payload: ReturnType<typeof toSavePayload>) {
   return Object.values(payload).some((value) => value !== null)
 }
 
+function hasAnyDraftInput(draft: ReviewDraft) {
+  return (
+    draft.answerability !== null ||
+    draft.query_quality !== null ||
+    draft.standalone_clarity !== null ||
+    draft.scientific_validity !== null ||
+    draft.top10_relevance !== null ||
+    draft.near_miss !== null ||
+    (draft.note ?? '').trim().length > 0
+  )
+}
+
 function isCompleteForTask(draft: ReviewDraft, isTraining: boolean) {
   const commonReady =
     draft.answerability !== null &&
@@ -218,6 +230,7 @@ export default function ReviewPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveTick, setSaveTick] = useState(0)
   const [expandedRetrieved, setExpandedRetrieved] = useState<Record<string, boolean>>({})
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
 
   const currentBucket = useMemo(
     () => BUCKETS.find((b) => b.key === selectedBucket)!,
@@ -228,6 +241,7 @@ export default function ReviewPage() {
 
   useEffect(() => {
     setExpandedRetrieved({})
+    setSaveStatus('idle')
   }, [currentItem?.id])
 
   useEffect(() => {
@@ -369,6 +383,7 @@ export default function ReviewPage() {
     if (!user || !canReview || !currentItem) return
 
     setSaveError(null)
+    setSaveStatus('saving')
     const isTraining = currentBucket.task_type === 'training'
     let existing: ReviewRow | undefined = reviewsByItem[currentItem.id]
 
@@ -382,6 +397,7 @@ export default function ReviewPage() {
 
       if (existingError && existingError.code !== 'PGRST116') {
         setSaveError(existingError.message)
+        setSaveStatus('idle')
         return
       }
 
@@ -393,10 +409,12 @@ export default function ReviewPage() {
     // Keep note optional, but save only when mandatory fields are complete.
     // This prevents partial rows and ensures revisit starts at first incomplete item.
     if (!isCompleteForTask(draft, isTraining)) {
+      setSaveStatus('idle')
       return
     }
 
     if (!existing && !hasAnyFeedback(payload)) {
+      setSaveStatus('idle')
       return
     }
 
@@ -410,11 +428,13 @@ export default function ReviewPage() {
 
       if (error) {
         setSaveError(error.message)
+        setSaveStatus('idle')
         return
       }
 
       setReviewsByItem((prev) => ({ ...prev, [currentItem.id]: data as ReviewRow }))
       setSaveTick((v) => v + 1)
+      setSaveStatus('saved')
       return
     }
 
@@ -430,16 +450,25 @@ export default function ReviewPage() {
 
     if (error) {
       setSaveError(error.message)
+      setSaveStatus('idle')
       return
     }
 
     setReviewsByItem((prev) => ({ ...prev, [currentItem.id]: data as ReviewRow }))
     setSaveTick((v) => v + 1)
+    setSaveStatus('saved')
   }
 
   useEffect(() => {
     if (!user || !canReview || !currentItem) return
 
+    const isTraining = currentBucket.task_type === 'training'
+    if (!hasAnyDraftInput(draft) || !isCompleteForTask(draft, isTraining)) {
+      setSaveStatus('idle')
+      return
+    }
+
+    setSaveStatus('saving')
     const timer = setTimeout(() => {
       persistDraft()
     }, 450)
@@ -631,7 +660,7 @@ export default function ReviewPage() {
 
                           return (
                             <li key={key}>
-                              <p className={`font-medium ${isGold ? 'text-emerald-400' : 'text-neutral-200'}`}>Rank {r.rank} • {r.doc_id}</p>
+                              <p className={`font-medium ${isGold ? 'text-emerald-400' : 'text-amber-300'}`}>Rank {r.rank} • {r.doc_id}</p>
                               <p className="text-neutral-200 whitespace-pre-wrap">{shownText}</p>
                               {needsToggle && (
                                 <button
@@ -652,7 +681,16 @@ export default function ReviewPage() {
               </div>
 
               <div className="rounded border p-4 space-y-5">
-                <h2 className="text-xs uppercase tracking-wide text-neutral-400">Expert Feedback Form</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs uppercase tracking-wide text-neutral-400">Expert Feedback Form</h2>
+                  {saveStatus !== 'idle' && (
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs font-medium ${saveStatus === 'saving' ? 'bg-amber-900/60 text-amber-300 border border-amber-700' : 'bg-emerald-900/60 text-emerald-300 border border-emerald-700'}`}
+                    >
+                      {saveStatus === 'saving' ? 'Saving' : 'Saved'}
+                    </span>
+                  )}
+                </div>
 
                 <fieldset className="space-y-2" disabled={!canReview}>
                   <div>
