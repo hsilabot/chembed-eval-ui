@@ -491,7 +491,7 @@ export default function ReviewPage() {
               <button
                 key={b.key}
                 onClick={() => setSelectedBucket(b.key)}
-                className={`w-full rounded px-2 py-1 text-left ${selectedBucket === b.key ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100'}`}
+                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'text-neutral-900 hover:bg-neutral-200'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span>{b.title}</span>
@@ -509,7 +509,7 @@ export default function ReviewPage() {
               <button
                 key={b.key}
                 onClick={() => setSelectedBucket(b.key)}
-                className={`w-full rounded px-2 py-1 text-left ${selectedBucket === b.key ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100'}`}
+                className={`cursor-pointer w-full rounded px-2 py-1 text-left transition-colors ${selectedBucket === b.key ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'text-neutral-900 hover:bg-neutral-200'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span>{b.title}</span>
@@ -522,7 +522,7 @@ export default function ReviewPage() {
 
         <button
           onClick={onExportCsv}
-          className="cursor-pointer mt-auto rounded border px-3 py-2 text-sm hover:bg-neutral-100"
+          className="cursor-pointer mt-auto rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
           disabled={!items.length}
         >
           Export current bucket CSV
@@ -557,14 +557,14 @@ export default function ReviewPage() {
                   Save
                 </button>
                 <button
-                  className="cursor-pointer rounded border px-3 py-1 disabled:opacity-50"
+                  className="cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-1 text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
                   disabled={index === 0}
                   onClick={() => goToIndex(Math.max(0, index - 1))}
                 >
                   Previous
                 </button>
                 <button
-                  className="cursor-pointer rounded border px-3 py-1 disabled:opacity-50"
+                  className="cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-1 text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
                   disabled={index >= items.length - 1}
                   onClick={() => goToIndex(Math.min(items.length - 1, index + 1))}
                 >
@@ -595,7 +595,7 @@ export default function ReviewPage() {
                       <p className="mt-1 text-sm whitespace-pre-wrap">{sanitizeText(payload.query ?? payload.query_text)}</p>
                     </div>
                     <div>
-                      <div className="text-xs text-neutral-500">Gold Passage</div>
+                      <div className="text-xs font-medium text-emerald-400">Gold Passage</div>
                       <div className="mt-1 max-h-64 overflow-y-auto rounded border border-neutral-700 bg-neutral-900 p-2">
                         <p className="text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.ground_truth_text)}</p>
                       </div>
@@ -612,7 +612,7 @@ export default function ReviewPage() {
 
                           return (
                             <li key={key}>
-                              <p className="font-medium text-blue-300">Rank {r.rank} • {r.doc_id}</p>
+                              <p className="font-medium text-neutral-900">Rank {r.rank} • {r.doc_id}</p>
                               <p className="text-neutral-700 whitespace-pre-wrap">{shownText}</p>
                               {needsToggle && (
                                 <button

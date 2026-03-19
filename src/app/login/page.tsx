@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
@@ -82,9 +81,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-xs text-slate-300">
-          Need the reviewer app? <Link className="cursor-pointer underline" href="/review">Go to review</Link>
-        </p>
       </div>
     </main>
   )
