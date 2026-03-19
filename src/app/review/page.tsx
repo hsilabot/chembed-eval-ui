@@ -71,6 +71,30 @@ const EMPTY_DRAFT: ReviewDraft = {
   near_miss: null,
 }
 
+function toSavePayload(draft: ReviewDraft, isTraining: boolean, existing?: ReviewRow) {
+  const note = (draft.note ?? '').trim()
+
+  return {
+    answerability: draft.answerability ?? existing?.answerability ?? null,
+    query_quality: draft.query_quality ?? existing?.query_quality ?? null,
+    standalone_clarity: draft.standalone_clarity ?? existing?.standalone_clarity ?? null,
+    note: note.length > 0 ? note : null,
+    scientific_validity: isTraining
+      ? (draft.scientific_validity ?? existing?.scientific_validity ?? null)
+      : null,
+    top10_relevance: isTraining
+      ? null
+      : (draft.top10_relevance ?? existing?.top10_relevance ?? null),
+    near_miss: isTraining
+      ? null
+      : (draft.near_miss ?? existing?.near_miss ?? null),
+  }
+}
+
+function hasAnyFeedback(payload: ReturnType<typeof toSavePayload>) {
+  return Object.values(payload).some((value) => value !== null)
+}
+
 function draftFromReview(review?: ReviewRow): ReviewDraft {
   if (!review) return EMPTY_DRAFT
 
@@ -160,6 +184,7 @@ export default function ReviewPage() {
 
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveTick, setSaveTick] = useState(0)
+  const [expandedRetrieved, setExpandedRetrieved] = useState<Record<string, boolean>>({})
 
   const currentBucket = useMemo(
     () => BUCKETS.find((b) => b.key === selectedBucket)!,
@@ -167,6 +192,10 @@ export default function ReviewPage() {
   )
 
   const currentItem = items[index] ?? null
+
+  useEffect(() => {
+    setExpandedRetrieved({})
+  }, [currentItem?.id])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -300,15 +329,29 @@ export default function ReviewPage() {
 
     const timer = setTimeout(async () => {
       setSaveError(null)
-      const existing = reviewsByItem[currentItem.id]
-      const payload = {
-        answerability: draft.answerability,
-        query_quality: draft.query_quality,
-        standalone_clarity: draft.standalone_clarity,
-        note: draft.note || null,
-        scientific_validity: currentBucket.task_type === 'training' ? draft.scientific_validity : null,
-        top10_relevance: currentBucket.task_type === 'evaluation' ? draft.top10_relevance : null,
-        near_miss: currentBucket.task_type === 'evaluation' ? draft.near_miss : null,
+      const isTraining = currentBucket.task_type === 'training'
+      let existing: ReviewRow | undefined = reviewsByItem[currentItem.id]
+
+      if (!existing) {
+        const { data: existingRow, error: existingError } = await supabase
+          .from('reviews')
+          .select('id, item_id, answerability, query_quality, standalone_clarity, note, scientific_validity, top10_relevance, near_miss')
+          .eq('item_id', currentItem.id)
+          .eq('reviewer_id', user.id)
+          .maybeSingle()
+
+        if (existingError && existingError.code !== 'PGRST116') {
+          setSaveError(existingError.message)
+          return
+        }
+
+        existing = (existingRow as ReviewRow | null) ?? undefined
+      }
+
+      const payload = toSavePayload(draft, isTraining, existing)
+
+      if (!existing && !hasAnyFeedback(payload)) {
+        return
       }
 
       if (existing) {
@@ -349,7 +392,7 @@ export default function ReviewPage() {
     }, 450)
 
     return () => clearTimeout(timer)
-  }, [draft, user, canReview, currentItem, currentBucket.task_type])
+  }, [draft, user, canReview, currentItem, currentBucket.task_type, reviewsByItem])
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -492,31 +535,55 @@ export default function ReviewPage() {
               <div className="rounded border p-4 space-y-4">
                 <h2 className="text-xs uppercase tracking-wide text-neutral-500">Presented Data</h2>
 
-                <div>
-                  <div className="text-xs text-neutral-500">Query</div>
-                  <p className="mt-1 text-sm whitespace-pre-wrap">{payload.query ?? payload.query_text}</p>
-                </div>
-
                 {isTraining ? (
-                  <div>
-                    <div className="text-xs text-neutral-500">Passage</div>
-                    <p className="mt-1 text-sm whitespace-pre-wrap">{payload.passage}</p>
+                  <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-2">
+                    <div>
+                      <div className="text-xs text-neutral-500">Query</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.query ?? payload.query_text}</p>
+                    </div>
+                    <div>
+                      <div className="text-xs text-neutral-500">Passage</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.passage}</p>
+                    </div>
                   </div>
                 ) : (
                   <>
                     <div>
+                      <div className="text-xs text-neutral-500">Query</div>
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.query ?? payload.query_text}</p>
+                    </div>
+                    <div>
                       <div className="text-xs text-neutral-500">Gold Passage</div>
-                      <p className="mt-1 text-sm whitespace-pre-wrap">{payload.ground_truth_text}</p>
+                      <div className="mt-1 max-h-64 overflow-y-auto rounded border bg-neutral-50 p-2">
+                        <p className="text-sm whitespace-pre-wrap">{payload.ground_truth_text}</p>
+                      </div>
                     </div>
                     <div>
                       <div className="text-xs text-neutral-500">Top-10 Retrieved</div>
                       <ol className="mt-2 space-y-3 text-sm list-decimal pl-5">
-                        {(payload.retrieved ?? []).map((r: RetrievedEntry) => (
-                          <li key={String(r.rank) + String(r.doc_id)}>
-                            <p className="font-medium">Rank {r.rank} • {r.doc_id}</p>
-                            <p className="text-neutral-700 whitespace-pre-wrap">{r.text}</p>
-                          </li>
-                        ))}
+                        {(payload.retrieved ?? []).map((r: RetrievedEntry, i: number) => {
+                          const key = `${currentItem.id}-${r.rank ?? i}-${r.doc_id ?? 'doc'}`
+                          const fullText = String(r.text ?? '')
+                          const needsToggle = fullText.length > 360
+                          const expanded = Boolean(expandedRetrieved[key])
+                          const shownText = expanded || !needsToggle ? fullText : `${fullText.slice(0, 360)}...`
+
+                          return (
+                            <li key={key}>
+                              <p className="font-medium">Rank {r.rank} • {r.doc_id}</p>
+                              <p className="text-neutral-700 whitespace-pre-wrap">{shownText}</p>
+                              {needsToggle && (
+                                <button
+                                  type="button"
+                                  className="mt-1 text-xs underline"
+                                  onClick={() => setExpandedRetrieved((prev) => ({ ...prev, [key]: !expanded }))}
+                                >
+                                  {expanded ? 'Show less' : 'Read more'}
+                                </button>
+                              )}
+                            </li>
+                          )
+                        })}
                       </ol>
                     </div>
                   </>

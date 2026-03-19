@@ -41,18 +41,18 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-lg border bg-white p-6 shadow-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-slate-950 p-6 text-slate-100">
+      <div className="w-full max-w-md space-y-5 rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-sm">
         <div>
-          <h1 className="text-2xl font-semibold">ChEmbed Expert Review</h1>
-          <p className="mt-1 text-sm text-neutral-600">Sign in with your Supabase account.</p>
+          <h1 className="text-2xl font-semibold text-white">ChEmbed Expert Review</h1>
+          <p className="mt-1 text-sm text-slate-300">Sign in with your Supabase account.</p>
         </div>
 
         <form className="space-y-4" onSubmit={onSubmit}>
-          <label className="block text-sm">
+          <label className="block text-sm text-slate-200">
             <span className="mb-1 block font-medium">Email</span>
             <input
-              className="w-full rounded border px-3 py-2"
+              className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -60,10 +60,10 @@ export default function LoginPage() {
             />
           </label>
 
-          <label className="block text-sm">
+          <label className="block text-sm text-slate-200">
             <span className="mb-1 block font-medium">Password</span>
             <input
-              className="w-full rounded border px-3 py-2"
+              className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -71,18 +71,18 @@ export default function LoginPage() {
             />
           </label>
 
-          {error && <p className="text-sm text-red-700">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
+            className="w-full rounded bg-slate-100 px-4 py-2 font-medium text-slate-950 disabled:opacity-60"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
-        <p className="text-xs text-neutral-600">
+        <p className="text-xs text-slate-300">
           Need the reviewer app? <Link className="underline" href="/review">Go to review</Link>
         </p>
       </div>
