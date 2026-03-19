@@ -3,28 +3,14 @@ import Link from 'next/link'
 export default function Home() {
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">ChEmbed Eval UI</h1>
+      <h1 className="text-2xl font-semibold">ChEmbed Expert Review</h1>
       <p className="text-sm text-neutral-600">
-        Expert review app (Training Data / Evaluation Data). Frontend-only, backed by Supabase.
+        Review Training and Evaluation samples from Supabase with autosave and per-bucket progress.
       </p>
 
-      <div className="space-y-2">
-        <h2 className="text-lg font-medium">Next</h2>
-        <ul className="list-disc pl-5 text-sm">
-          <li>
-            Add Supabase Auth login (email/password)
-          </li>
-          <li>
-            Sidebar: Training Data + Evaluation Data (Successful / Unsuccessful)
-          </li>
-          <li>
-            Review card: left = presented data, right = feedback form
-          </li>
-        </ul>
-      </div>
-
-      <div className="flex gap-3">
-        <Link className="underline" href="/review">Go to review (stub)</Link>
+      <div className="flex gap-3 text-sm">
+        <Link className="rounded border px-3 py-2 hover:bg-neutral-100" href="/login">Login</Link>
+        <Link className="rounded border px-3 py-2 hover:bg-neutral-100" href="/review">Open Review App</Link>
       </div>
     </main>
   )
