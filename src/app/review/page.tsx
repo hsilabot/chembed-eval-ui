@@ -463,8 +463,28 @@ export default function ReviewPage() {
     if (!user || !canReview || !currentItem) return
 
     const isTraining = currentBucket.task_type === 'training'
+
+    // Rule: show no badge when empty or incomplete.
     if (!hasAnyDraftInput(draft) || !isCompleteForTask(draft, isTraining)) {
       setSaveStatus('idle')
+      return
+    }
+
+    const existing = reviewsByItem[currentItem.id]
+
+    // Only autosave when something actually changed vs the last persisted row.
+    // Otherwise: display "Saved" (not "Saving") for completed items.
+    const nowPayload = toSavePayload(draft, isTraining, existing)
+
+    // If we already have a row, compare against what's persisted.
+    // If we don't have a row yet, treat as dirty when there's anything to save.
+    const persistedPayload = existing ? toSavePayload(draftFromReview(existing), isTraining, existing) : null
+    const isDirty = existing
+      ? JSON.stringify(nowPayload) !== JSON.stringify(persistedPayload)
+      : hasAnyFeedback(nowPayload)
+
+    if (!isDirty) {
+      setSaveStatus('saved')
       return
     }
 
