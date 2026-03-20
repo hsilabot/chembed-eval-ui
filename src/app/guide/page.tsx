@@ -168,6 +168,10 @@ export default function GuidePage() {
             <li>Judge usefulness from the perspective of a realistic human search scenario.</li>
             <li>Do not reward a query only because it is grammatically correct; it should also be meaningful and targeted.</li>
             <li>In Task B, a result can still be useful even when the exact gold passage is missing.</li>
+            <li>The sidebar progress shows how many items are fully completed, regardless of their order in the list.</li>
+            <li>Saving happens automatically only after all required fields for the current item are filled.</li>
+            <li>In the Expert Feedback Form, a yellow badge means the item is being saved and a green badge means it has been saved successfully.</li>
+            <li>To prevent partial submissions, make sure every required field is completed before moving to the next or previous item.</li>
             <li>Use the optional note field to capture anything ambiguous, unusual, or worth revisiting later.</li>
           </ul>
         </section>

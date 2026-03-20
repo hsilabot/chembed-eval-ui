@@ -151,7 +151,7 @@ function hasAnyDraftInput(draft: ReviewDraft) {
   )
 }
 
-function isCompleteForTask(draft: ReviewDraft, isTraining: boolean) {
+function isCompleteForTask(draft: ReviewDraft, isTraining: boolean, payload?: ItemPayload) {
   const commonReady =
     draft.answerability !== null &&
     draft.specificity !== null &&
@@ -160,7 +160,21 @@ function isCompleteForTask(draft: ReviewDraft, isTraining: boolean) {
 
   if (!commonReady) return false
   if (isTraining) return draft.scientific_validity !== null
-  return draft.top10_relevance !== null
+
+  const retrieved = Array.isArray(payload?.retrieved) ? payload!.retrieved : []
+  const requiredRanks = retrieved
+    .slice(0, 10)
+    .map((r, i) => ({ rank: Number(r.rank ?? i + 1), isGold: isLikelyGoldMatch(payload?.ground_truth_text, r.text) }))
+    .filter((r) => !r.isGold)
+    .map((r) => r.rank)
+
+  const relevance = draft.retrieved_relevance ?? {}
+  const allRetrievedRated = requiredRanks.every((rank) => {
+    const v = relevance[String(rank)]
+    return v === 1 || v === 2 || v === 3
+  })
+
+  return draft.top10_relevance !== null && allRetrievedRated
 }
 
 function draftFromReview(review?: ReviewRow): ReviewDraft {
@@ -354,7 +368,7 @@ export default function ReviewPage() {
       const byItem: Record<string, ReviewRow> = {}
       for (const r of ((loadedReviews ?? []) as unknown as ReviewRow[])) byItem[r.item_id] = r
       setReviewsByItem(byItem)
-      const firstIncompleteIndex = rows.findIndex((item) => !isCompleteForTask(draftFromReview(byItem[item.id]), item.task_type === 'training'))
+      const firstIncompleteIndex = rows.findIndex((item) => !isCompleteForTask(draftFromReview(byItem[item.id]), item.task_type === 'training', item.payload))
       const initialIndex = firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0
       setIndex(initialIndex)
       setDraft(draftFromReview(byItem[rows[initialIndex].id]))
@@ -379,7 +393,7 @@ export default function ReviewPage() {
       existing = (existingRow as ReviewRow | null) ?? undefined
     }
     const payload = toSavePayload(draft, isTraining, existing)
-    if (!isCompleteForTask(draft, isTraining)) {
+    if (!isCompleteForTask(draft, isTraining, currentItem.payload)) {
       setSaveStatus('idle')
       return
     }
@@ -413,7 +427,7 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!user || !canReview || !currentItem) return
     const isTraining = currentBucket.task_type === 'training'
-    if (!hasAnyDraftInput(draft) || !isCompleteForTask(draft, isTraining)) {
+    if (!hasAnyDraftInput(draft) || !isCompleteForTask(draft, isTraining, currentItem.payload)) {
       setSaveStatus('idle')
       return
     }
@@ -542,7 +556,7 @@ export default function ReviewPage() {
             <div className="flex items-center justify-between text-sm">
               <div>{currentBucket.title} • Item {index + 1} / {items.length}</div>
               <div className="flex gap-2">
-                <Link href="/guide" target="_blank" className="cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-1 text-white transition-colors hover:bg-neutral-800">Guide</Link>
+                <Link href="/guide" target="_blank" className="cursor-pointer rounded border border-emerald-700 bg-emerald-700 px-3 py-1 text-white transition-colors hover:bg-emerald-600">Guide</Link>
                 <button className="cursor-pointer rounded border border-blue-600 bg-blue-600 px-3 py-1 text-white hover:bg-blue-500 disabled:opacity-50" disabled={!canReview} onClick={persistDraft}>Save</button>
                 <button className="cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-1 text-white transition-colors hover:bg-neutral-800 disabled:opacity-50" disabled={index === 0} onClick={() => goToIndex(Math.max(0, index - 1))}>Previous</button>
                 <button className="cursor-pointer rounded border border-neutral-700 bg-neutral-900 px-3 py-1 text-white transition-colors hover:bg-neutral-800 disabled:opacity-50" disabled={index >= items.length - 1} onClick={() => goToIndex(Math.min(items.length - 1, index + 1))}>Next</button>
