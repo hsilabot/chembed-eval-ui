@@ -614,6 +614,7 @@ export default function ReviewPage() {
       <aside className="w-80 border-r border-neutral-800 bg-neutral-950 p-4 flex flex-col gap-6">
         <div className="space-y-1">
           <h1 className="text-lg font-semibold">ChEmbed Review</h1>
+          <p className="text-[10px] text-neutral-500">Build: {(process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? 'local').slice(0, 7)}</p>
           <p className="text-xs text-neutral-300 break-all">{user.email}</p>
           <button className="cursor-pointer text-xs underline" onClick={signOut}>Logout</button>
         </div>
@@ -693,9 +694,9 @@ export default function ReviewPage() {
                               <p className="text-neutral-200 whitespace-pre-wrap">{shownText}</p>
                               {needsToggle && <button type="button" className="cursor-pointer mt-1 text-xs underline text-blue-300" onClick={() => setExpandedRetrieved((prev) => ({ ...prev, [key]: !expanded }))}>{expanded ? 'Show less' : 'Read more'}</button>}
                               {!isGold && (
-                                <div className="mt-2 flex flex-wrap gap-3 text-xs text-neutral-300">
+                                <div className={`mt-2 flex flex-wrap gap-3 text-xs ${canReview ? 'text-neutral-300' : 'text-neutral-100'}`}>
                                   {[[1, 'Not relevant'], [2, 'Somewhat relevant'], [3, 'Relevant']].map(([value, label]) => (
-                                    <label key={`${rank}-${value}`} className="flex items-center gap-1 cursor-pointer">
+                                    <label key={`${rank}-${value}`} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
                                       <input
                                         className={canReview ? 'cursor-pointer' : 'cursor-default'}
                                         type="radio"
@@ -707,7 +708,7 @@ export default function ReviewPage() {
                                         style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
                                         onChange={() => setRetrievedRelevance(rank, Number(value))}
                                       />
-                                      {label}
+                                      <span className={canReview ? 'text-neutral-300' : 'text-neutral-100'}>{label}</span>
                                     </label>
                                   ))}
                                 </div>
