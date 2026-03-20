@@ -110,16 +110,26 @@ function toSavePayload(draft: ReviewDraft, isTraining: boolean, existing?: Revie
   const nearMissRanks = normalizeRanks(draft.near_miss_ranks ?? existing?.near_miss_ranks ?? null)
   const retrievedRelevance = normalizeRetrievedRelevance(draft.retrieved_relevance ?? existing?.retrieved_relevance ?? null)
 
+  if (isTraining) {
+    return {
+      answerability: draft.answerability ?? existing?.answerability ?? null,
+      specificity: draft.specificity ?? existing?.specificity ?? null,
+      query_quality: draft.query_quality ?? existing?.query_quality ?? null,
+      standalone_clarity: draft.standalone_clarity ?? existing?.standalone_clarity ?? null,
+      note: note.length ? note : null,
+      scientific_validity: draft.scientific_validity ?? existing?.scientific_validity ?? null,
+    }
+  }
+
   return {
     answerability: draft.answerability ?? existing?.answerability ?? null,
     specificity: draft.specificity ?? existing?.specificity ?? null,
     query_quality: draft.query_quality ?? existing?.query_quality ?? null,
     standalone_clarity: draft.standalone_clarity ?? existing?.standalone_clarity ?? null,
     note: note.length ? note : null,
-    scientific_validity: isTraining ? (draft.scientific_validity ?? existing?.scientific_validity ?? null) : null,
-    top10_relevance: isTraining ? null : (draft.top10_relevance ?? existing?.top10_relevance ?? null),
-    near_miss_ranks: isTraining ? null : nearMissRanks,
-    retrieved_relevance: isTraining ? null : retrievedRelevance,
+    top10_relevance: draft.top10_relevance ?? existing?.top10_relevance ?? null,
+    near_miss_ranks: nearMissRanks,
+    retrieved_relevance: retrievedRelevance,
   }
 }
 
