@@ -48,7 +48,7 @@ export default function GuidePage() {
         </section>
 
         <section className="space-y-3 rounded border border-neutral-800 bg-neutral-900/60 p-5">
-          <h2 className="text-lg font-semibold">2. Task A: synthetic query quality</h2>
+          <h2 className="text-lg font-semibold">2. Training data (Task A): synthetic query quality</h2>
           <div className="space-y-3 text-sm leading-6 text-neutral-200">
             <p>In Task A, you will see:</p>
             <ul className="list-disc space-y-1 pl-5 text-neutral-300">
@@ -71,7 +71,7 @@ export default function GuidePage() {
         </section>
 
         <section className="space-y-3 rounded border border-neutral-800 bg-neutral-900/60 p-5">
-          <h2 className="text-lg font-semibold">3. Task B: retrieval quality</h2>
+          <h2 className="text-lg font-semibold">3. Evaluation data (Task B): retrieval quality</h2>
           <div className="space-y-3 text-sm leading-6 text-neutral-200">
             <p>In Task B, you will see:</p>
             <ul className="list-disc space-y-1 pl-5 text-neutral-300">
@@ -79,6 +79,8 @@ export default function GuidePage() {
               <li>the gold/source passage</li>
               <li>the top-10 passages retrieved by the model</li>
             </ul>
+            <p>As in Task A, consider whether the query is understandable, realistic, and scientifically faithful.</p>
+            <p>In addition, judge how useful the retrieval results are for satisfying the query.</p>
             <p>There are two categories:</p>
             <ul className="list-disc space-y-1 pl-5 text-neutral-300">
               <li>
@@ -91,8 +93,9 @@ export default function GuidePage() {
               </li>
             </ul>
             <p>
-              Your job is to judge how useful the retrieved passages are for satisfying the query, not only
-              whether the exact gold passage is present.
+              Your job is to judge how useful the retrieved passages are for satisfying the query. A result set
+              can still be helpful even if the exact gold passage is missing, and a technically successful set
+              can still be weak if most retrieved passages are poor matches.
             </p>
           </div>
         </section>
@@ -151,7 +154,9 @@ export default function GuidePage() {
               <h3 className="font-medium text-white">Near-miss</h3>
               <p className="text-neutral-300">
                 A near-miss is a retrieved passage that is not the exact gold passage but is still strongly relevant
-                and likely helpful for the same information need.
+                and likely helpful for the same information need. If no retrieved passage has this property, leave
+                the near-miss checkboxes empty. If one or more retrieved passages do have this property, check the
+                corresponding retrieved items.
               </p>
             </div>
           </div>
