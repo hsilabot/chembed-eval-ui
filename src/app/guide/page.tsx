@@ -58,6 +58,7 @@ export default function GuidePage() {
             <p>Your job is to judge whether the query:</p>
             <ul className="list-disc space-y-1 pl-5 text-neutral-300">
               <li>can be answered from the passage</li>
+              <li>is specific to the passage and its context</li>
               <li>is clear and understandable on its own</li>
               <li>is scientifically faithful to the passage</li>
               <li>feels like a realistic query a human might search for</li>
@@ -99,11 +100,22 @@ export default function GuidePage() {
         <section className="space-y-4 rounded border border-neutral-800 bg-neutral-900/60 p-5">
           <h2 className="text-lg font-semibold">4. Rating definitions</h2>
 
+          <p className="text-sm leading-6 text-neutral-300">
+            For all 1-5 ratings, 1 indicates low quality and 5 indicates high quality.
+          </p>
+
           <div className="space-y-4 text-sm leading-6 text-neutral-200">
             <div>
               <h3 className="font-medium text-white">Answerability</h3>
               <p className="text-neutral-300">
-                Can the given passage answer the query well enough?
+                Can the given passage answer the query clearly enough from the provided context?
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-white">Specificity (1–5)</h3>
+              <p className="text-neutral-300">
+                How specifically is the query tied to the provided passage and its context, rather than being vague or broadly applicable?
               </p>
             </div>
 
@@ -117,7 +129,7 @@ export default function GuidePage() {
             <div>
               <h3 className="font-medium text-white">Standalone clarity (1–5)</h3>
               <p className="text-neutral-300">
-                Is the query understandable on its own, without missing context or hidden assumptions?
+                Is the query understandable on its own, without missing context or hidden assumptions? References such as "this work", "these results", "the method", or "this approach" can reduce clarity if the missing referent is not clear from the query itself.
               </p>
             </div>
 
