@@ -559,7 +559,7 @@ export default function ReviewPage() {
         </button>
       </aside>
 
-      <section className="flex-1 p-6 overflow-auto space-y-4 bg-neutral-950 text-neutral-100">
+      <section className="flex-1 p-6 overflow-hidden space-y-4 bg-neutral-950 text-neutral-100">
         {!canReview && <div className="rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900">Read-only: not authorized to submit reviews</div>}
         {saveError && <div className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">Save failed: {saveError}</div>}
         {loadingBucket ? (
@@ -578,11 +578,11 @@ export default function ReviewPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="rounded border p-4 space-y-4">
+            <div className="grid h-[calc(100vh-9rem)] grid-cols-1 gap-6 xl:grid-cols-2">
+              <div className="rounded border p-4 space-y-4 overflow-y-auto min-h-0">
                 <h2 className="text-xs uppercase tracking-wide text-neutral-400">Presented Data</h2>
                 {isTraining ? (
-                  <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-2">
+                  <div className="space-y-4 pr-2">
                     <div><div className="text-xs text-neutral-300">Query</div><p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.query ?? payload.query_text)}</p></div>
                     <div><div className="text-xs text-neutral-300">Passage</div><p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.passage)}</p></div>
                   </div>
@@ -591,7 +591,7 @@ export default function ReviewPage() {
                     <div><div className="text-xs text-neutral-300">Query</div><p className="mt-1 text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.query ?? payload.query_text)}</p></div>
                     <div>
                       <div className="text-xs font-medium text-emerald-400">Gold Passage</div>
-                      <div className="mt-1 max-h-64 overflow-y-auto rounded border border-neutral-700 bg-neutral-900 p-2"><p className="text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.ground_truth_text)}</p></div>
+                      <div className="mt-1 rounded border border-neutral-700 bg-neutral-900 p-2"><p className="text-sm whitespace-pre-wrap text-neutral-100">{sanitizeText(payload.ground_truth_text)}</p></div>
                     </div>
                     <div>
                       <div className="text-xs text-neutral-300">Top-10 Retrieved</div>
@@ -614,7 +614,7 @@ export default function ReviewPage() {
                                 <div className="mt-2 flex flex-wrap gap-3 text-xs text-neutral-300">
                                   {[[1, 'Not relevant'], [2, 'Somewhat relevant'], [3, 'Relevant']].map(([value, label]) => (
                                     <label key={`${rank}-${value}`} className="cursor-pointer flex items-center gap-1">
-                                      <input type="radio" name={`retrieved-relevance-${rank}`} checked={relValue === value} onChange={() => setRetrievedRelevance(rank, Number(value))} />
+                                      <input className="cursor-pointer" type="radio" name={`retrieved-relevance-${rank}`} checked={relValue === value} onChange={() => setRetrievedRelevance(rank, Number(value))} />
                                       {label}
                                     </label>
                                   ))}
@@ -629,7 +629,7 @@ export default function ReviewPage() {
                 )}
               </div>
 
-              <div className="rounded border p-4 space-y-5">
+              <div className="rounded border p-4 space-y-5 self-start sticky top-0 h-fit">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs uppercase tracking-wide text-neutral-400">Expert Feedback Form</h2>
                   {saveStatus !== 'idle' && <span className={`rounded px-2 py-0.5 text-xs font-medium ${saveStatus === 'saving' ? 'bg-amber-900/60 text-amber-300 border border-amber-700' : 'bg-emerald-900/60 text-emerald-300 border border-emerald-700'}`}>{saveStatus === 'saving' ? 'Saving' : 'Saved'}</span>}
@@ -638,32 +638,32 @@ export default function ReviewPage() {
                   <div>
                     <div className="text-sm font-medium">Answerability</div>
                     <div className="mt-1 flex gap-4 text-sm">
-                      <label className="cursor-pointer flex items-center gap-2"><input type="radio" checked={draft.answerability === true} onChange={() => setDraftField('answerability', true)} /> Yes</label>
-                      <label className="cursor-pointer flex items-center gap-2"><input type="radio" checked={draft.answerability === false} onChange={() => setDraftField('answerability', false)} /> No</label>
+                      <label className="cursor-pointer flex items-center gap-2"><input className="cursor-pointer" type="radio" checked={draft.answerability === true} onChange={() => setDraftField('answerability', true)} /> Yes</label>
+                      <label className="cursor-pointer flex items-center gap-2"><input className="cursor-pointer" type="radio" checked={draft.answerability === false} onChange={() => setDraftField('answerability', false)} /> No</label>
                     </div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Specificity (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input type="radio" value={v} checked={draft.specificity === v} onChange={onScaleChange('specificity')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.specificity === v} onChange={onScaleChange('specificity')} />{scoreLabel(v)}</label>)}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Query quality (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input type="radio" value={v} checked={draft.query_quality === v} onChange={onScaleChange('query_quality')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.query_quality === v} onChange={onScaleChange('query_quality')} />{scoreLabel(v)}</label>)}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Standalone clarity (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input type="radio" value={v} checked={draft.standalone_clarity === v} onChange={onScaleChange('standalone_clarity')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.standalone_clarity === v} onChange={onScaleChange('standalone_clarity')} />{scoreLabel(v)}</label>)}</div>
                   </div>
                   {isTraining ? (
                     <div>
                       <div className="text-sm font-medium">Scientific validity (1-5)</div>
-                      <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
+                      <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
                     </div>
                   ) : (
                     <>
                       <div>
                         <div className="text-sm font-medium">Scientific validity (1-5)</div>
-                        <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
+                        <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium">Near-miss ranks</div>
@@ -675,7 +675,7 @@ export default function ReviewPage() {
                             const checked = draft.near_miss_ranks?.includes(rank) ?? false
                             return (
                               <label key={`near-miss-${rank}`} className={`flex items-center gap-2 rounded border px-2 py-2 ${isGold ? 'cursor-not-allowed border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-70' : 'cursor-pointer border-neutral-700 bg-neutral-900 text-neutral-100 hover:bg-neutral-800'}`}>
-                                <input type="checkbox" checked={checked} disabled={isGold} onChange={() => toggleNearMissRank(rank)} />
+                                <input className="cursor-pointer" type="checkbox" checked={checked} disabled={isGold} onChange={() => toggleNearMissRank(rank)} />
                                 <span>Rank {rank}</span>
                               </label>
                             )
