@@ -703,26 +703,34 @@ export default function ReviewPage() {
                                     </div>
                                   )}
 
-                                  <div className="flex flex-wrap gap-2 text-xs">
-                                    {[[1, 'Not relevant'], [2, 'Somewhat relevant'], [3, 'Relevant']].map(([value, label]) => (
-                                      <label
-                                        key={`${rank}-${value}`}
-                                        className={`flex items-center gap-2 rounded-full border px-2 py-1 ${relValue === value ? 'border-white bg-neutral-800 text-white' : 'border-neutral-700 bg-neutral-950 text-neutral-300'} ${canReview ? 'cursor-pointer hover:bg-neutral-800' : 'cursor-not-allowed'}`}
-                                      >
-                                        <input
-                                          className={canReview ? 'cursor-pointer' : 'cursor-not-allowed'}
-                                          type="radio"
-                                          name={`retrieved-relevance-${rank}`}
-                                          checked={relValue === value}
-                                          aria-disabled={!canReview}
-                                          tabIndex={canReview ? 0 : -1}
-                                          style={canReview ? { accentColor: '#ffffff' } : { pointerEvents: 'none', accentColor: '#ffffff' }}
-                                          onChange={() => setRetrievedRelevance(rank, Number(value))}
-                                        />
-                                        {label}
-                                      </label>
-                                    ))}
-                                  </div>
+                                  {canReview ? (
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                      {[[1, 'Not relevant'], [2, 'Somewhat relevant'], [3, 'Relevant']].map(([value, label]) => (
+                                        <label
+                                          key={`${rank}-${value}`}
+                                          className={`flex items-center gap-2 rounded-full border px-2 py-1 ${relValue === value ? 'border-white bg-neutral-800 text-white' : 'border-neutral-700 bg-neutral-950 text-neutral-300'} cursor-pointer hover:bg-neutral-800`}
+                                        >
+                                          <input
+                                            className="cursor-pointer"
+                                            type="radio"
+                                            name={`retrieved-relevance-${rank}`}
+                                            checked={relValue === value}
+                                            style={{ accentColor: '#ffffff' }}
+                                            onChange={() => setRetrievedRelevance(rank, Number(value))}
+                                          />
+                                          {label}
+                                        </label>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-neutral-200">
+                                      <span className={relValue === 1 ? 'font-semibold text-white' : 'text-neutral-400'}>Not relevant</span>
+                                      <span className="mx-2 text-neutral-600">|</span>
+                                      <span className={relValue === 2 ? 'font-semibold text-white' : 'text-neutral-400'}>Somewhat relevant</span>
+                                      <span className="mx-2 text-neutral-600">|</span>
+                                      <span className={relValue === 3 ? 'font-semibold text-white' : 'text-neutral-400'}>Relevant</span>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </li>
