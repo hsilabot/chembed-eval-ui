@@ -727,36 +727,138 @@ export default function ReviewPage() {
                   <h2 className="text-xs uppercase tracking-wide text-neutral-400">Expert Feedback Form</h2>
                   {saveStatus !== 'idle' && <span className={`rounded px-2 py-0.5 text-xs font-medium ${saveStatus === 'saving' ? 'bg-amber-900/60 text-amber-300 border border-amber-700' : 'bg-emerald-900/60 text-emerald-300 border border-emerald-700'}`}>{saveStatus === 'saving' ? 'Saving' : 'Saved'}</span>}
                 </div>
-                <fieldset className="space-y-2" disabled={!canReview}>
+                <fieldset className="space-y-2">
                   <div>
                     <div className="text-sm font-medium">Answerability</div>
                     <div className="mt-1 flex gap-4 text-sm">
-                      <label className="cursor-pointer flex items-center gap-2"><input className="cursor-pointer" type="radio" checked={draft.answerability === true} onChange={() => setDraftField('answerability', true)} /> Yes</label>
-                      <label className="cursor-pointer flex items-center gap-2"><input className="cursor-pointer" type="radio" checked={draft.answerability === false} onChange={() => setDraftField('answerability', false)} /> No</label>
+                      <label className={`flex items-center gap-2 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                        <input
+                          className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                          type="radio"
+                          checked={draft.answerability === true}
+                          aria-disabled={!canReview}
+                          tabIndex={canReview ? 0 : -1}
+                          style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                          onChange={() => setDraftField('answerability', true)}
+                        />
+                        Yes
+                      </label>
+                      <label className={`flex items-center gap-2 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                        <input
+                          className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                          type="radio"
+                          checked={draft.answerability === false}
+                          aria-disabled={!canReview}
+                          tabIndex={canReview ? 0 : -1}
+                          style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                          onChange={() => setDraftField('answerability', false)}
+                        />
+                        No
+                      </label>
                     </div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Specificity (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.specificity === v} onChange={onScaleChange('specificity')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">
+                      {[1, 2, 3, 4, 5].map((v) => (
+                        <label key={v} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                          <input
+                            className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                            type="radio"
+                            value={v}
+                            checked={draft.specificity === v}
+                            aria-disabled={!canReview}
+                            tabIndex={canReview ? 0 : -1}
+                            style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                            onChange={onScaleChange('specificity')}
+                          />
+                          {scoreLabel(v)}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Query quality (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.query_quality === v} onChange={onScaleChange('query_quality')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">
+                      {[1, 2, 3, 4, 5].map((v) => (
+                        <label key={v} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                          <input
+                            className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                            type="radio"
+                            value={v}
+                            checked={draft.query_quality === v}
+                            aria-disabled={!canReview}
+                            tabIndex={canReview ? 0 : -1}
+                            style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                            onChange={onScaleChange('query_quality')}
+                          />
+                          {scoreLabel(v)}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <div className="text-sm font-medium">Standalone clarity (1-5)</div>
-                    <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.standalone_clarity === v} onChange={onScaleChange('standalone_clarity')} />{scoreLabel(v)}</label>)}</div>
+                    <div className="mt-1 flex gap-3 text-sm">
+                      {[1, 2, 3, 4, 5].map((v) => (
+                        <label key={v} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                          <input
+                            className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                            type="radio"
+                            value={v}
+                            checked={draft.standalone_clarity === v}
+                            aria-disabled={!canReview}
+                            tabIndex={canReview ? 0 : -1}
+                            style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                            onChange={onScaleChange('standalone_clarity')}
+                          />
+                          {scoreLabel(v)}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   {isTraining ? (
                     <div>
                       <div className="text-sm font-medium">Scientific validity (1-5)</div>
-                      <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
+                      <div className="mt-1 flex gap-3 text-sm">
+                        {[1, 2, 3, 4, 5].map((v) => (
+                          <label key={v} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                            <input
+                              className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                              type="radio"
+                              value={v}
+                              checked={draft.scientific_validity === v}
+                              aria-disabled={!canReview}
+                              tabIndex={canReview ? 0 : -1}
+                              style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                              onChange={onScaleChange('scientific_validity')}
+                            />
+                            {scoreLabel(v)}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <>
                       <div>
                         <div className="text-sm font-medium">Scientific validity (1-5)</div>
-                        <div className="mt-1 flex gap-3 text-sm">{[1,2,3,4,5].map((v) => <label key={v} className="cursor-pointer flex items-center gap-1"><input className="cursor-pointer" type="radio" value={v} checked={draft.scientific_validity === v} onChange={onScaleChange('scientific_validity')} />{scoreLabel(v)}</label>)}</div>
+                        <div className="mt-1 flex gap-3 text-sm">
+                          {[1, 2, 3, 4, 5].map((v) => (
+                            <label key={v} className={`flex items-center gap-1 ${canReview ? 'cursor-pointer' : 'cursor-default'}`}>
+                              <input
+                                className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                                type="radio"
+                                value={v}
+                                checked={draft.scientific_validity === v}
+                                aria-disabled={!canReview}
+                                tabIndex={canReview ? 0 : -1}
+                                style={canReview ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                                onChange={onScaleChange('scientific_validity')}
+                              />
+                              {scoreLabel(v)}
+                            </label>
+                          ))}
+                        </div>
                       </div>
                       <div>
                         <div className="text-sm font-medium">Near-miss ranks</div>
@@ -767,8 +869,16 @@ export default function ReviewPage() {
                             const isGold = isLikelyGoldMatch(payload.ground_truth_text, r.text)
                             const checked = draft.near_miss_ranks?.includes(rank) ?? false
                             return (
-                              <label key={`near-miss-${rank}`} className={`flex items-center gap-2 rounded border px-2 py-2 ${isGold ? 'cursor-not-allowed border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-70' : 'cursor-pointer border-neutral-700 bg-neutral-900 text-neutral-100 hover:bg-neutral-800'}`}>
-                                <input className="cursor-pointer" type="checkbox" checked={checked} disabled={isGold} onChange={() => toggleNearMissRank(rank)} />
+                              <label key={`near-miss-${rank}`} className={`flex items-center gap-2 rounded border px-2 py-2 ${isGold ? 'cursor-default border-emerald-800 bg-emerald-950/40 text-emerald-200' : canReview ? 'cursor-pointer border-neutral-700 bg-neutral-900 text-neutral-100 hover:bg-neutral-800' : 'cursor-default border-neutral-800 bg-neutral-950 text-neutral-100'}`}>
+                                <input
+                                  className={canReview ? 'cursor-pointer' : 'cursor-default'}
+                                  type="checkbox"
+                                  checked={checked}
+                                  aria-disabled={!canReview || isGold}
+                                  tabIndex={canReview && !isGold ? 0 : -1}
+                                  style={canReview && !isGold ? { accentColor: '#3b82f6' } : { pointerEvents: 'none', accentColor: '#3b82f6' }}
+                                  onChange={() => toggleNearMissRank(rank)}
+                                />
                                 <span>Rank {rank}</span>
                               </label>
                             )
@@ -779,7 +889,17 @@ export default function ReviewPage() {
                   )}
                   <label className="block">
                     <span className="text-sm font-medium">Short note (optional)</span>
-                    <textarea className="mt-1 w-full rounded border px-3 py-2 text-sm" rows={4} value={draft.note ?? ''} onChange={(e) => setDraftField('note', e.target.value)} placeholder="One sentence note" />
+                    <textarea
+                      className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                      rows={4}
+                      value={draft.note ?? ''}
+                      readOnly={!canReview}
+                      aria-disabled={!canReview}
+                      tabIndex={canReview ? 0 : -1}
+                      style={canReview ? undefined : { pointerEvents: 'none' }}
+                      onChange={(e) => setDraftField('note', e.target.value)}
+                      placeholder="One sentence note"
+                    />
                   </label>
                 </fieldset>
               </div>
